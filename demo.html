@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideEasy — Vehicle Rental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --charcoal:#1A1A1D;
+    --cream:#FAF7F2;
+    --route:#FFC857;
+    --rust:#C84B31;
+    --slate:#54566B;
+    --forest:#2D6A4F;
+    --line:#E4DFD4;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:linear-gradient(135deg, #f5efe5 0%, #efe3d0 100%);
+    color:var(--charcoal);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:16px;
+  }
+  .phone-shell{
+    width:min(100%, 430px);
+    min-height:calc(100vh - 32px);
+    background:var(--cream);
+    border:1px solid #e8dfd1;
+    border-radius:28px;
+    box-shadow:0 24px 50px rgba(26,26,29,.16);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  h1,h2,h3,.brand,.btn{font-family:'Space Grotesk',sans-serif;}
+
+  /* ---------- Top bar with road-dash signature ---------- */
+  .topbar{
+    background:var(--charcoal);
+    color:var(--cream);
+    padding:16px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    position:relative;
+    overflow:visible;
+  }
+  .topbar::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:4px;
+    background-image:repeating-linear-gradient(to right, var(--route) 0 28px, transparent 28px 44px);
+  }
+  .brand{font-size:1.3rem; font-weight:700; letter-spacing:.5px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0;}
+  .brand img{width:104px; height:104px; object-fit:contain; border-radius:18px; padding:4px;}
+  .brand span{color:var(--route);}
+  .route-trail{display:flex; gap:6px; align-items:center; font-size:.78rem; color:#C9C6BE; flex-wrap:wrap; justify-content:flex-end;}
+  .route-trail .stop{padding:4px 10px; border:1px solid #3A3A3E; border-radius:20px;}
+  .route-trail .stop.active{background:var(--route); color:var(--charcoal); border-color:var(--route); font-weight:600;}
+  .route-trail .dash{width:14px; height:1px; background:#555;}
+
+  .wrap{width:100%; max-width:none; margin:0 auto; padding:0; flex:1; display:flex; flex-direction:column;}
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px;
+  }
+  .welcome-card{
+    text-align:center;
+    max-width:none;
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    padding:24px 16px;
+    flex:1;
+    min-height:100%;
+    border:none;
+    border-radius:0;
+    background:linear-gradient(180deg, #fff 0%, #fdf7ed 100%);
+  }
+  .welcome-card h2{font-size:1.6rem; line-height:1.25; margin:0;}
+  .welcome-card .note{font-size:1rem; line-height:1.6; margin:0 auto; max-width:100%;}
+  .welcome-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:8px; flex-direction:column; width:min(100%, 320px);}
+  .welcome-actions .btn{padding:15px 22px; font-size:1.02rem; width:100%;}
+  .ride-start-card{
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    gap:18px; padding:32px 20px; min-height:100%; border:none; border-radius:0;
+    background:linear-gradient(145deg, #fff 0%, #fdf7ed 100%);
+    text-align:center;
+  }
+  .ride-start-card .ride-hero{width:min(100%, 320px); display:flex; flex-direction:column; align-items:center; gap:14px;}
+  .ride-start-card h2{font-size:2rem; line-height:1.15; margin:0;}
+  .ride-start-card .note{font-size:1.02rem; max-width:300px; margin:0;}
+  .ride-start-card .btn{padding:16px 24px; font-size:1.04rem; width:min(100%, 280px);}
+  .hidden{display:none !important;}
+
+  /* ---------- Auth ---------- */
+  .auth-toggle{display:flex; gap:0; margin-bottom:16px; border:1px solid var(--line); border-radius:999px; padding:4px; width:100%;}
+  .auth-toggle button{
+    border:none; background:transparent; padding:10px 16px; border-radius:999px;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; cursor:pointer; color:var(--slate);
+    flex:1;
+  }
+  .auth-toggle button.active{background:var(--charcoal); color:var(--route);}
+  .role-toggle{display:flex; gap:10px; margin-bottom:14px; flex-direction:column;}
+  .role-toggle label{
+    border:1px solid var(--line); padding:8px 14px; border-radius:8px; cursor:pointer; font-size:.9rem;
+  }
+  .role-toggle input{margin-right:6px;}
+  label.field{display:block; margin-bottom:14px; font-size:.85rem; color:var(--slate); font-weight:600;}
+  input[type=text],input[type=email],input[type=password],input[type=number],select{
+    width:100%; padding:11px 12px; margin-top:6px; border:1px solid var(--line); border-radius:8px;
+    font-family:'Inter'; font-size:.95rem; background:#FCFBF8;
+  }
+  input:focus,select:focus{outline:2px solid var(--route); outline-offset:1px;}
+  .btn{
+    background:var(--rust); color:#fff; border:none; padding:12px 18px; border-radius:10px;
+    font-weight:600; cursor:pointer; font-size:.95rem;
+  }
+  .btn:hover{background:#a83b27;}
+  .btn.ghost{background:transparent; color:var(--charcoal); border:1px solid var(--charcoal);}
+  .btn.ghost:hover{background:var(--charcoal); color:var(--cream);}
+  .link-btn{background:none; border:none; color:var(--rust); cursor:pointer; font-size:.85rem; padding:0; text-decoration:underline;}
+  .error{color:var(--rust); font-size:.85rem; margin-top:8px;}
+  .note{font-size:.8rem; color:var(--slate); margin-top:10px;}
+  .inline-grid{display:grid; gap:12px; grid-template-columns:1fr;}
+  .section-title{display:flex; justify-content:space-between; align-items:center; margin-top:30px; margin-bottom:10px; gap:8px;}
+  .status-pill{display:inline-block; padding:4px 10px; border-radius:999px; font-size:.72rem; font-weight:700; background:#EFF6F1; color:var(--forest);}
+  .status-pill.pending{background:#FBEAE7; color:var(--rust);}
+  .status-pill.ready{background:#EAF6FF; color:#245d87;}
+  .tiny{font-size:.78rem; color:var(--slate);}
+  .history-list{display:flex; flex-direction:column; gap:10px; margin-top:10px;}
+  .history-item{border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:#FCFBF8;}
+  .history-item .history-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;}
+  .history-item .history-meta{font-size:.8rem; color:var(--slate); margin-top:4px;}
+
+  /* ---------- App shell ---------- */
+  .app-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;}
+  .app-header h2{margin:0;}
+  .panel-switch{font-size:.85rem; color:var(--slate);}
+  .panel-switch button{margin-left:8px;}
+
+  .grid{display:grid; grid-template-columns:1fr; gap:14px; margin-top:16px;}
+  .vehicle-card{
+    border:1px solid var(--line); border-radius:var(--radius); padding:18px; background:#fff;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .vehicle-image{
+    width:100%; height:140px; object-fit:cover; border-radius:10px; background:#F2EFE8;
+    border:1px solid var(--line);
+  }
+  .admin-vehicle-row{display:flex; gap:14px; align-items:center;}
+  .admin-vehicle-row img{width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid var(--line);} 
+  .tiny-vehicle-thumb{width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid var(--line);} 
+  .tag{
+    display:inline-block; font-size:.7rem; font-weight:700; padding:3px 9px; border-radius:6px;
+    background:#EFF6F1; color:var(--forest); width:fit-content;
+  }
+  .tag.rented{background:#FBEAE7; color:var(--rust);}
+  .vehicle-card h3{margin:2px 0 0; font-size:1.05rem;}
+  .price{font-weight:700; color:var(--charcoal);}
+  .price span{font-size:.75rem; color:var(--slate); font-weight:500;}
+
+  table{width:100%; border-collapse:collapse; margin-top:14px; display:block;overflow-x:auto; white-space:nowrap; }
+  th,td{text-align:left; padding:10px 8px; border-bottom:1px solid var(--line);white-space:nowrap;}
+  th{color:var(--slate); font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.4px;}
+
+  .stat-row{display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap;}
+  .stat{flex:1; min-width:140px; border:1px solid var(--line); border-radius:var(--radius); padding:16px; background:#fff;}
+  .stat-clickable{cursor:pointer; transition:transform .2s ease, border-color .2s ease;}
+  .stat-clickable:hover{transform:translateY(-2px); border-color:var(--route);}
+  .stat .num{font-family:'Space Grotesk'; font-size:1.6rem; font-weight:700;}
+  .stat .lab{font-size:.78rem; color:var(--slate);}
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(26,26,29,.55); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50;
+  }
+  .modal{background:#fff; border-radius:var(--radius); padding:28px; max-width:420px; width:100%;}
+  .modal h3{margin-top:0;}
+  .breakdown{background:#FAF7F2; border:1px dashed var(--line); border-radius:10px; padding:14px; margin:14px 0; font-size:.9rem;}
+  .breakdown .row{display:flex; justify-content:space-between; padding:4px 0;}
+  .breakdown .total{font-weight:700; border-top:1px solid var(--line); margin-top:6px; padding-top:8px;}
+  .security-box{background:#F7F0E8; border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:10px 0 14px; font-size:.86rem; color:var(--slate);}
+  .security-box strong{color:var(--charcoal);}
+  .pay-options{display:flex; gap:10px; margin:14px 0; flex-wrap:wrap;}
+  .pay-options label{border:1px solid var(--line); padding:8px 12px; border-radius:8px; font-size:.85rem; cursor:pointer;}
+  .pay-options input{margin-right:6px;}
+  .success-banner{
+    background:#EFF6F1; border:1px solid #CFE6D7; color:var(--forest); padding:12px 16px; border-radius:10px;
+    font-size:.9rem; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .account-row{cursor:pointer;}
+  .account-row:hover{background:#f9f4ea;}
+  .detail-card{background:#FAF7F2; border:1px solid var(--line); border-radius:10px; padding:14px; margin-top:10px;}
+  .detail-card .row{display:flex; justify-content:space-between; gap:10px; padding:4px 0; font-size:.9rem;}
+  footer{text-align:center; font-size:.78rem; color:var(--slate); padding:16px 12px 20px;}
+  .close-x{cursor:pointer; border:none; background:none; font-size:1.1rem; color:var(--slate);}
+
+  @media (max-width: 640px){
+    body{padding:8px;}
+    .phone-shell{width:100%; min-height:calc(100vh - 16px); border-radius:20px;}
+    .topbar{padding:14px 16px; gap:10px;}
+    .route-trail{justify-content:flex-start;}
+    .brand img{width:44px; height:44px;}
+    .route-trail{display:none;}
+    .wrap{padding:0;}
+    .welcome-card{padding:24px 14px;}
+    .card{padding:16px;}
+    .welcome-card{padding:18px 12px;}
+    .app-header{flex-direction:column; align-items:flex-start; gap:8px;}
+    .stat-row{flex-direction:column;}
+    .stat{min-width:100%;}
+    .modal{padding:18px;}
+    table{font-size:.8rem;}
+  }
+</style>
+</head>
+<body>
+  <div class="phone-shell">
+
+  <div class="topbar">
+  <div class="brand"><img src="C:\Users\Sanjay S\Downloads\LOGO.webp" alt="RideEasy logo"><span>Ride</span>Easy</div>
+  <div class="route-trail" id="routeTrail"></div>
+</div>
+
+<div class="wrap">
+
+  <div id="welcomeScreen" class="card welcome-card">
+    <div style="display:flex; justify-content:center; align-items:center; gap:14px; flex-wrap:wrap;">
+      <img src="C:\Users\Sanjay S\Downloads\LOGO.webp" alt="RideEasy logo" style="width:90%; max-width:260px; height:auto; object-fit:contain; border-radius:30px;">
+      <span class="status-pill" style="font-size:0.8rem; padding:6px 12px;">Welcome to RideEasy</span>
+    </div>
+    <h2>Ride easy, rent smart.</h2>
+    <p class="note">Your journey starts here. Tap below to continue to the next step.</p>
+    <div class="welcome-actions">
+      <button class="btn" onclick="startRideFlow()">Continue</button>
+    </div>
+  </div>
+
+  <div id="rideStartScreen" class="card hidden ride-start-card">
+    <div class="ride-hero">
+      <span class="status-pill">Step 2</span>
+      <h2>Start your ride</h2>
+      <p class="note">Continue to the login area to book, rent, or manage your ride.</p>
+      <button class="btn" onclick="startAuthFlow('login')">Continue to login</button>
+    </div>
+  </div>
+
+  <!-- ===================== AUTH SCREEN ===================== -->
+  <div id="authScreen" class="card hidden">
+    <div class="auth-toggle">
+      <button id="tabLogin" class="active" onclick="setAuthTab('login')">Log in</button>
+      <button id="tabRegister" onclick="setAuthTab('register')">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="loginForm">
+      <div class="role-toggle">
+        <label><input type="radio" name="loginRole" value="user" checked> User login</label>
+        <label><input type="radio" name="loginRole" value="customer"> Customer login</label>
+        <label><input type="radio" name="loginRole" value="company"> Company login</label>
+      </div>
+      <label class="field">Email ID
+        <input type="email" id="loginEmail" placeholder="you@example.com">
+      </label>
+      <label class="field">Password
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </label>
+      <div id="loginError" class="error hidden"></div>
+      <button class="btn" onclick="handleLogin()">Log in</button>
+      <div style="margin-top:10px;">
+        <button class="link-btn" onclick="openForgot()">Forgot password?</button>
+      </div>
+    </div>
+
+    <!-- Register -->
+    <div id="registerForm" class="hidden">
+      <div class="role-toggle">
+        <label><input type="radio" name="registerRole" value="user" checked> Register as user (lists vehicles)</label>
+        <label><input type="radio" name="registerRole" value="customer"> Register as customer (rents vehicles)</label>
+        <label><input type="radio" name="registerRole" value="company"> Register as company (tracks bookings)</label>
+      </div>
+      <label class="field">Email ID
+        <input type="email" id="regEmail" placeholder="you@example.com">
+      </label>
+      <label class="field">Password
+        <input type="password" id="regPassword" placeholder="Create a password">
+      </label>
+      <label class="field">Mobile No.
+        <input type="text" id="regMobile" placeholder="10-digit mobile number">
+      </label>
+      <div id="regError" class="error hidden"></div>
+      <button class="btn" onclick="handleRegister()">Create account</button>
+    </div>
+
+    <!-- Forgot password -->
+    <div id="forgotForm" class="hidden">
+      <h3 style="margin-top:0;">Reset your password</h3>
+      <p class="note">We'll reset your password using the email on file.</p>
+      <label class="field">Email ID
+        <input type="email" id="forgotEmail" placeholder="you@example.com">
+      </label>
+      <div id="forgotMsg" class="note hidden"></div>
+      <div style="display:flex; gap:10px; margin-top:6px;">
+        <button class="btn" onclick="handleForgot()">Send reset link</button>
+        <button class="btn ghost" onclick="setAuthTab('login')">Back to login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== USER PANEL (lister) ===================== -->
+  <div id="userPanel" class="hidden">
+    <div class="app-header">
+      <h2>User panel</h2>
+      <div class="panel-switch">
+        Logged in as <b id="userEmailTag"></b>
+        <button class="link-btn" onclick="logout()">Log out</button>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="num" id="statListed">0</div><div class="lab">Vehicles listed</div></div>
+      <div class="stat"><div class="num" id="statRentedOut">0</div><div class="lab">Currently rented out</div></div>
+      <div class="stat"><div class="num" id="statEarnings">₹0</div><div class="lab">Tracked earnings</div></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">List a vehicle for rent</h3>
+      <div class="inline-grid">
+        <label class="field">Vehicle name
+          <input type="text" id="newVName" placeholder="e.g. Honda Activa">
+        </label>
+        <label class="field">Type
+          <select id="newVType">
+            <option>Bike</option>
+            <option>Car</option>
+            <option>Scooter</option>
+          </select>
+        </label>
+        <label class="field">Price per day (₹)
+          <input type="number" id="newVPrice" placeholder="1000">
+        </label>
+      </div>
+      <div class="inline-grid" style="margin-top:8px;">
+        <label class="field">Contact name
+          <input type="text" id="newVOwnerName" placeholder="Your full name">
+        </label>
+        <label class="field">Contact phone
+          <input type="text" id="newVOwnerPhone" placeholder="10-digit phone number">
+        </label>
+        <label class="field">Pickup address
+          <input type="text" id="newVAddress" placeholder="Street or landmark for pickup">
+        </label>
+      </div>
+      <div class="inline-grid" style="margin-top:8px;">
+        <label class="field">Vehicle photo URL or upload
+          <input type="text" id="newVImage" placeholder="Paste image URL (optional)">
+          <input type="file" id="newVImageFile" accept="image/*" style="margin-top:8px;">
+        </label>
+      </div>
+      <button class="btn" onclick="addVehicle()">Add to listings</button>
+    </div>
+
+    <h3>Your vehicles</h3>
+    <table id="userVehicleTable">
+      <thead><tr><th>Photo</th><th>Vehicle</th><th>Type</th><th>₹/day</th><th>Status</th><th>Renter</th><th>Pickup details</th><th>Action</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <h3 style="margin-top:24px;">History</h3>
+    <div id="userHistoryList" class="history-list"></div>
+  </div>
+
+  <!-- ===================== CUSTOMER PANEL ===================== -->
+  <div id="customerPanel" class="hidden">
+    <div class="app-header">
+      <h2>Browse vehicles</h2>
+      <div class="panel-switch">
+        Logged in as <b id="custEmailTag"></b>
+        <button class="link-btn" onclick="logout()">Log out</button>
+      </div>
+    </div>
+
+    <div id="bookingSuccess" class="success-banner hidden">
+      <span id="bookingSuccessMsg"></span>
+      <button class="close-x" onclick="dismissBanner()">✕</button>
+    </div>
+
+    <div class="grid" id="customerGrid"></div>
+
+    <h3 style="margin-top:34px;">Your bookings</h3>
+    <table>
+      <thead><tr><th>Vehicle</th><th>Days</th><th>Total</th><th>Pickup</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="myBookingsBody"></tbody>
+    </table>
+
+    <h3 style="margin-top:24px;">History</h3>
+    <div id="customerHistoryList" class="history-list"></div>
+  </div>
+
+  <!-- ===================== COMPANY PANEL ===================== -->
+  <div id="companyPanel" class="hidden">
+    <div class="app-header">
+      <h2>Company / admin panel</h2>
+      <div class="panel-switch">
+        Signed in as <b id="companyEmailTag"></b>
+        <button class="link-btn" onclick="logout()">Log out</button>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="num" id="statCompanyVehicles">0</div><div class="lab">Vehicles listed</div></div>
+      <div class="stat"><div class="num" id="statCompanyRented">0</div><div class="lab">Vehicles currently rented</div></div>
+      <div class="stat"><div class="num" id="statCompanyPickup">0</div><div class="lab">Pending pickup / review</div></div>
+      <div class="stat"><div class="num" id="statCompanyVerified">0</div><div class="lab">Documents verified</div></div>
+      <div class="stat stat-clickable" onclick="openRegisteredAccountsModal('user')"><div class="num" id="statCompanyUsers">0</div><div class="lab">Total registered users</div></div>
+      <div class="stat stat-clickable" onclick="openRegisteredAccountsModal('customer')"><div class="num" id="statCompanyCustomers">0</div><div class="lab">Total registered customers</div></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">List a vehicle for the company fleet</h3>
+      <div class="inline-grid">
+        <label class="field">Vehicle name
+          <input type="text" id="companyVName" placeholder="e.g. Toyota Etios">
+        </label>
+        <label class="field">Type
+          <select id="companyVType">
+            <option>Bike</option>
+            <option>Car</option>
+            <option>Scooter</option>
+          </select>
+        </label>
+        <label class="field">Price per day (₹)
+          <input type="number" id="companyVPrice" placeholder="1200">
+        </label>
+      </div>
+      <div class="inline-grid" style="margin-top:8px;">
+        <label class="field">Company owner name
+          <input type="text" id="companyOwnerName" value="RideEasy Fleet" placeholder="Company name">
+        </label>
+        <label class="field">Company contact phone
+          <input type="text" id="companyOwnerPhone" placeholder="10-digit phone number">
+        </label>
+        <label class="field">Pickup address
+          <input type="text" id="companyVAddress" placeholder="Company pickup location">
+        </label>
+      </div>
+      <div class="inline-grid" style="margin-top:8px;">
+        <label class="field">Vehicle photo URL or upload
+          <input type="text" id="companyVImage" placeholder="Paste image URL (optional)">
+          <input type="file" id="companyVImageFile" accept="image/*" style="margin-top:8px;">
+        </label>
+      </div>
+      <button class="btn" onclick="addCompanyVehicle()">Add company vehicle</button>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="section-title">
+        <h3 style="margin:0;">Booking status overview</h3>
+        <span class="tiny">Track customer verification, pickup status and rent activity</span>
+      </div>
+      <table>
+        <thead><tr><th>Customer</th><th>Owner</th><th>Vehicle</th><th>Days</th><th>Total</th><th>Pickup</th><th>Status</th></tr></thead>
+        <tbody id="companyBookingsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="section-title">
+        <h3 style="margin:0;">Fleet overview</h3>
+        <span class="tiny">Vehicle details with photos for the admin panel</span>
+      </div>
+      <table>
+        <thead><tr><th>Vehicle</th><th>Type</th><th>Price</th><th>Owner</th><th>Pickup</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="companyVehiclesBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="accountDetailModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <h3 style="margin:0;">Account details</h3>
+      <button class="close-x" onclick="closeModal('accountDetailModal')">✕</button>
+    </div>
+    <div id="accountDetailContent" class="detail-card"></div>
+  </div>
+</div>
+
+<footer>RideEasy prototype — built from your notes on login/register, user &amp; customer panels, booking and payment.</footer>
+  </div>
+
+<!-- ===================== BOOKING MODAL ===================== -->
+<div id="bookModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="bookModalTitle">Book vehicle</h3>
+    <div id="bookOwnerDetails" class="note"></div>
+    <label class="field">Number of days
+      <input type="number" id="bookDays" min="1" value="1" oninput="updateBreakdown()">
+    </label>
+    <label class="field">Customer name
+      <input type="text" id="bookCustomerName" placeholder="Your full name">
+    </label>
+    <label class="field">PAN card number
+      <input type="text" id="bookPanNumber" placeholder="ABCDE1234F" maxlength="10">
+    </label>
+    <label class="field">Driving license number
+      <input type="text" id="bookDlNumber" placeholder="e.g. DL-01-2024-1234567" maxlength="16">
+    </label>
+    <label class="field">Short note for the owner
+      <input type="text" id="bookDocNote" placeholder="Optional note for security review">
+    </label>
+    <div class="security-box">
+      <strong>Security check:</strong> Please submit your original documents to the owner for verification before pickup. Customer name, PAN, driving licence, and pickup address are required for owner approval, and the booking will be confirmed only after the owner approves.
+    </div>
+    <label class="field">Pickup option
+      <select id="bookPickupMode">
+        <option value="collect">Collect from user</option>
+        <option value="delivery">Need delivery to address</option>
+      </select>
+    </label>
+    <label class="field">Pickup / delivery note
+      <input type="text" id="bookPickupNote" placeholder="Preferred time or pickup address">
+    </label>
+    <div class="breakdown">
+      <div class="row"><span>Rate</span><span id="bdRate">₹0 / day</span></div>
+      <div class="row"><span>Days</span><span id="bdDays">1</span></div>
+      <div class="row total"><span>Total</span><span id="bdTotal">₹0</span></div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn" onclick="goToPayment()">Submit for owner approval</button>
+      <button class="btn ghost" onclick="closeModal('bookModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAYMENT MODAL ===================== -->
+<div id="payModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Payment</h3>
+    <div class="breakdown">
+      <div class="row total"><span>Amount due</span><span id="payAmount">₹0</span></div>
+    </div>
+    <p class="note">Choose a payment method:</p>
+    <div class="pay-options">
+      <label><input type="radio" name="payMethod" value="Cash" checked> Cash on pickup</label>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn" onclick="confirmPayment()">Confirm &amp; pay</button>
+      <button class="btn ghost" onclick="closeModal('payModal')">Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- In-memory state ---------------- */
+const STORAGE_KEY = 'rideeasy-demo-state';
+
+const seededUsers = {
+  'sanju12@gmail.com': {password:'Sanju@12', mobile:'9876543210', role:'company'},
+  'demo-owner@rideeasy.com': {password:'welcome123', mobile:'9876543210', role:'user'},
+  'demo-customer@rideeasy.com': {password:'welcome123', mobile:'9876543211', role:'customer'}
+};
+
+let users = {...seededUsers};      // email -> {password, mobile, role}
+let currentUser = null; // {email, role}
+const DEFAULT_VEHICLE_IMAGE = 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=900&q=80';
+
+let vehicles = [
+  {id:1, owner:'demo-owner@rideeasy.com', name:'Honda Activa', type:'Bike', price:400, status:'available', renter:null, days:0, ownerName:'Asha Kumar', ownerPhone:'9876543210', pickupAddress:'Near MG Road', image:'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=900&q=80'},
+  {id:2, owner:'demo-owner@rideeasy.com', name:'Royal Enfield Classic', type:'Bike', price:900, status:'available', renter:null, days:0, ownerName:'Asha Kumar', ownerPhone:'9876543210', pickupAddress:'Near MG Road', image:'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=900&q=80'},
+  {id:3, owner:'demo-owner@rideeasy.com', name:'Maruti Swift', type:'Car', price:1800, status:'available', renter:null, days:0, ownerName:'Asha Kumar', ownerPhone:'9876543210', pickupAddress:'Near MG Road', image:'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80'},
+  {id:4, owner:'demo-owner@rideeasy.com', name:'TVS iQube', type:'Scooter', price:500, status:'available', renter:null, days:0, ownerName:'Asha Kumar', ownerPhone:'9876543210', pickupAddress:'Near MG Road', image:'https://images.unsplash.com/photo-1555652736-e92021d28bba?auto=format&fit=crop&w=900&q=80'},
+];
+let nextVehicleId = 5;
+let bookings = []; // {vehicleId, customer, days, total, method, customerName, dlNumber, proofType, proofId, pickupMode, pickupNote, status, pickupTime}
+
+let activeBookingVehicleId = null;
+
+async function persistState(){
+  const state = { users, vehicles, bookings, currentUser, nextVehicleId };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  try {
+    await fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    });
+  } catch (err) {
+    console.warn('Could not sync to backend', err);
+  }
+}
+
+async function loadState(){
+  try {
+    const localSaved = JSON.parse(localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY) || '{}');
+    if(localSaved.users && Object.keys(localSaved.users).length){
+      users = localSaved.users;
+    } else {
+      users = {...seededUsers};
+    }
+    if(localSaved.vehicles && localSaved.vehicles.length){
+      vehicles = localSaved.vehicles;
+    } else {
+      vehicles = [...JSON.parse(JSON.stringify(vehicles))];
+    }
+    bookings = localSaved.bookings || [];
+    currentUser = localSaved.currentUser || null;
+    nextVehicleId = localSaved.nextVehicleId || 5;
+
+    const response = await fetch('/api/state');
+    if(response.ok){
+      const serverState = await response.json();
+      if(serverState.users && Object.keys(serverState.users).length){
+        users = serverState.users;
+      } else {
+        users = {...seededUsers};
+      }
+      if(serverState.vehicles && serverState.vehicles.length){
+        vehicles = serverState.vehicles;
+      } else {
+        vehicles = [...JSON.parse(JSON.stringify(vehicles))];
+      }
+      bookings = serverState.bookings || [];
+      currentUser = serverState.currentUser || null;
+      nextVehicleId = serverState.nextVehicleId || 5;
+    }
+  } catch (err) {
+    console.warn('Could not load saved demo state', err);
+  }
+}
+
+loadState();
+
+/* ---------------- Welcome + Auth flow ---------------- */
+function hideAppPanels(){
+  document.getElementById('userPanel').classList.add('hidden');
+  document.getElementById('customerPanel').classList.add('hidden');
+  document.getElementById('companyPanel').classList.add('hidden');
+}
+function showWelcome(){
+  hideAppPanels();
+  document.getElementById('welcomeScreen').classList.remove('hidden');
+  document.getElementById('rideStartScreen').classList.add('hidden');
+  document.getElementById('authScreen').classList.add('hidden');
+}
+function startRideFlow(){
+  hideAppPanels();
+  document.getElementById('welcomeScreen').classList.add('hidden');
+  document.getElementById('rideStartScreen').classList.remove('hidden');
+  document.getElementById('authScreen').classList.add('hidden');
+}
+function startAuthFlow(tab='login'){
+  hideAppPanels();
+  document.getElementById('welcomeScreen').classList.add('hidden');
+  document.getElementById('rideStartScreen').classList.add('hidden');
+  document.getElementById('authScreen').classList.remove('hidden');
+  setAuthTab(tab);
+}
+function setAuthTab(tab){
+  hideAppPanels();
+  document.getElementById('welcomeScreen').classList.add('hidden');
+  document.getElementById('rideStartScreen').classList.add('hidden');
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('loginForm').classList.toggle('hidden', tab!=='login');
+  document.getElementById('registerForm').classList.toggle('hidden', tab!=='register');
+  document.getElementById('forgotForm').classList.add('hidden');
+  document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+  document.getElementById('tabRegister').classList.toggle('active', tab==='register');
+}
+function openForgot(){
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('registerForm').classList.add('hidden');
+  document.getElementById('forgotForm').classList.remove('hidden');
+}
+function handleForgot(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  const msg = document.getElementById('forgotMsg');
+  msg.classList.remove('hidden');
+  if(!email){ msg.textContent = 'Enter the email on file.'; return; }
+  if(!users[email]){ msg.textContent = 'No account found for that email.'; return; }
+  msg.textContent = 'Reset link sent to ' + email + '. (Simulated — password unchanged in this prototype.)';
+}
+
+/* ---------------- Register ---------------- */
+function handleRegister(){
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const mobile = document.getElementById('regMobile').value.trim();
+  const role = document.querySelector('input[name="registerRole"]:checked').value;
+  const err = document.getElementById('regError');
+  err.classList.add('hidden');
+
+  if(!email || !password || !mobile){
+    err.textContent = 'Email, password, and mobile number are all required.';
+    err.classList.remove('hidden'); return;
+  }
+  if(role === 'company' && email !== 'sanju12@gmail.com'){
+    err.textContent = 'Only the admin account can register as company.';
+    err.classList.remove('hidden'); return;
+  }
+  if(users[email]){
+    err.textContent = 'An account with this email already exists. Try logging in.';
+    err.classList.remove('hidden'); return;
+  }
+  users[email] = {password, mobile, role};
+  persistState();
+  setAuthTab('login');
+  document.getElementById('loginEmail').value = email;
+  document.querySelector(`input[name="loginRole"][value="${role}"]`).checked = true;
+}
+
+/* ---------------- Login ---------------- */
+function handleLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const role = document.querySelector('input[name="loginRole"]:checked').value;
+  const err = document.getElementById('loginError');
+  err.classList.add('hidden');
+
+  const acct = users[email];
+  if(!acct){
+    err.textContent = 'No account found for this email. Please register first.';
+    err.classList.remove('hidden'); return;
+  }
+  if(acct.password !== password){
+    err.textContent = 'Incorrect email or password.';
+    err.classList.remove('hidden'); return;
+  }
+  if(role === 'company' && email !== 'sanju12@gmail.com'){
+    err.textContent = 'Only the admin account can access the company panel.';
+    err.classList.remove('hidden'); return;
+  }
+  if(acct.role !== role){
+    err.textContent = 'This account is registered for a different role.';
+    err.classList.remove('hidden'); return;
+  }
+  currentUser = {email, role};
+  persistState();
+  enterApp();
+}
+
+function logout(){
+  currentUser = null;
+  persistState();
+  hideAppPanels();
+  showWelcome();
+  renderRouteTrail('auth');
+}
+
+function enterApp(){
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('userPanel').classList.add('hidden');
+  document.getElementById('customerPanel').classList.add('hidden');
+  document.getElementById('companyPanel').classList.add('hidden');
+
+  if(currentUser.role === 'user'){
+    document.getElementById('userPanel').classList.remove('hidden');
+    document.getElementById('userEmailTag').textContent = currentUser.email;
+    renderRouteTrail('user');
+    renderUserPanel();
+  } else if(currentUser.role === 'company'){
+    document.getElementById('companyPanel').classList.remove('hidden');
+    document.getElementById('companyEmailTag').textContent = currentUser.email;
+    renderRouteTrail('company');
+    renderCompanyPanel();
+  } else {
+    document.getElementById('customerPanel').classList.remove('hidden');
+    document.getElementById('custEmailTag').textContent = currentUser.email;
+    renderRouteTrail('customer');
+    renderCustomerPanel();
+  }
+}
+
+/* ---------------- Route trail (signature element) ---------------- */
+function renderRouteTrail(stage){
+  const stops = stage==='auth'
+    ? [['Login','active'],['Browse',''],['Book',''],['Pay','']]
+    : stage==='user'
+      ? [['Login',''],['List vehicle','active'],['Track rentals','']]
+      : stage==='company'
+        ? [['Login',''],['Review bookings','active'],['Verify pickup',''],['Track fleet','']]
+        : [['Login',''],['Browse','active'],['Book',''],['Pay','']];
+  const el = document.getElementById('routeTrail');
+  el.innerHTML = stops.map(([label,cls],i)=>
+    (i>0?'<span class="dash"></span>':'') + `<span class="stop ${cls}">${label}</span>`
+  ).join('');
+}
+renderRouteTrail('auth');
+if(currentUser){
+  showWelcome();
+} else {
+  showWelcome();
+}
+
+/* ---------------- User panel rendering ---------------- */
+function readVehicleImage(urlInputId, fileInputId){
+  return new Promise(resolve => {
+    const fileInput = document.getElementById(fileInputId);
+    const urlInput = document.getElementById(urlInputId);
+    if(fileInput && fileInput.files && fileInput.files[0]){
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result || DEFAULT_VEHICLE_IMAGE);
+      reader.onerror = () => resolve(urlInput.value.trim() || DEFAULT_VEHICLE_IMAGE);
+      reader.readAsDataURL(fileInput.files[0]);
+      return;
+    }
+    resolve(urlInput.value.trim() || DEFAULT_VEHICLE_IMAGE);
+  });
+}
+
+async function addVehicle(){
+  const name = document.getElementById('newVName').value.trim();
+  const type = document.getElementById('newVType').value;
+  const price = parseFloat(document.getElementById('newVPrice').value);
+  const ownerName = document.getElementById('newVOwnerName').value.trim();
+  const ownerPhone = document.getElementById('newVOwnerPhone').value.trim();
+  const pickupAddress = document.getElementById('newVAddress').value.trim();
+  const image = await readVehicleImage('newVImage', 'newVImageFile');
+  if(!name || !price || price<=0){ alert('Enter a vehicle name and a valid daily price.'); return; }
+  vehicles.push({id:nextVehicleId++, owner:currentUser.email, name, type, price, status:'available', renter:null, days:0, ownerName, ownerPhone, pickupAddress, image});
+  document.getElementById('newVName').value='';
+  document.getElementById('newVPrice').value='';
+  document.getElementById('newVOwnerName').value='';
+  document.getElementById('newVOwnerPhone').value='';
+  document.getElementById('newVAddress').value='';
+  document.getElementById('newVImage').value='';
+  document.getElementById('newVImageFile').value='';
+  persistState();
+  renderUserPanel();
+}
+
+async function addCompanyVehicle(){
+  const name = document.getElementById('companyVName').value.trim();
+  const type = document.getElementById('companyVType').value;
+  const price = parseFloat(document.getElementById('companyVPrice').value);
+  const ownerName = document.getElementById('companyOwnerName').value.trim() || 'RideEasy Fleet';
+  const ownerPhone = document.getElementById('companyOwnerPhone').value.trim();
+  const pickupAddress = document.getElementById('companyVAddress').value.trim();
+  const image = await readVehicleImage('companyVImage', 'companyVImageFile');
+  if(!name || !price || price<=0){ alert('Enter a vehicle name and a valid daily price.'); return; }
+  vehicles.push({id:nextVehicleId++, owner:currentUser.email, name, type, price, status:'available', renter:null, days:0, ownerName, ownerPhone, pickupAddress, image});
+  document.getElementById('companyVName').value='';
+  document.getElementById('companyVPrice').value='';
+  document.getElementById('companyOwnerName').value='RideEasy Fleet';
+  document.getElementById('companyOwnerPhone').value='';
+  document.getElementById('companyVAddress').value='';
+  document.getElementById('companyVImage').value='';
+  document.getElementById('companyVImageFile').value='';
+  persistState();
+  renderCompanyPanel();
+}
+
+function renderUserPanel(){
+  const mine = vehicles.filter(v => v.owner === currentUser.email);
+  document.getElementById('statListed').textContent = mine.length;
+  document.getElementById('statRentedOut').textContent = mine.filter(v=>v.status==='rented' || v.status==='ready').length;
+  const earnings = bookings.filter(b => mine.some(v=>v.id===b.vehicleId)).reduce((s,b)=>s+b.total,0);
+  document.getElementById('statEarnings').textContent = '₹' + earnings;
+
+  const body = document.querySelector('#userVehicleTable tbody');
+  body.innerHTML = mine.map(v => {
+    const booking = bookings.find(b => b.vehicleId === v.id);
+    const isPendingDocs = booking && booking.status === 'documents_pending';
+    const isRejected = booking && booking.status === 'rejected';
+    const isReady = booking && booking.status === 'ready';
+    const isReturned = booking && booking.status === 'returned';
+    const isCompleted = booking && booking.status === 'completed';
+    const statusCell = isCompleted || isReturned
+      ? '<span class="tag">Returned</span>'
+      : isRejected
+        ? '<span class="tag rented">Rejected</span>'
+        : isReady
+          ? '<span class="tag">Ready</span>'
+          : isPendingDocs
+            ? '<span class="tag rented">Docs pending</span>'
+            : (v.status === 'rented' ? '<span class="tag rented">Rented</span>' : '<span class="tag">Available</span>');
+    let actionCell = '—';
+    if (isCompleted || isReturned) {
+      actionCell = 'Completed';
+    } else if (isRejected) {
+      actionCell = '<span class="tiny">Rejected by you</span>';
+    } else if (isPendingDocs) {
+      actionCell = '<div style="display:flex; flex-direction:column; align-items:flex-start; gap:4px;">' +
+        '<button class="link-btn" onclick="approveDocuments(' + v.id + ')">Approve documents</button>' +
+        '<button class="link-btn" onclick="rejectBooking(' + v.id + ')" style="color:var(--rust);">Reject order</button>' +
+        '</div>';
+    } else if (isReady || v.status === 'rented') {
+      actionCell = '<div style="display:flex; flex-direction:column; align-items:flex-start; gap:4px;">' +
+        '<button class="link-btn" onclick="markPickupReady(' + v.id + ')">Mark ready</button>' +
+        '<button class="link-btn" onclick="markVehicleReturned(' + v.id + ')" style="color:var(--forest);">Mark returned</button>' +
+        '</div>';
+    }
+
+    actionCell += '<button class="link-btn" onclick="removeVehicle(' + v.id + ')" style="color:var(--rust);">Remove</button>';
+
+    return `
+      <tr>
+        <td><img class="tiny-vehicle-thumb" src="${v.image || DEFAULT_VEHICLE_IMAGE}" alt="${v.name}"></td>
+        <td>${v.name}</td>
+        <td>${v.type}</td>
+        <td>₹${v.price}</td>
+        <td>${statusCell}</td>
+        <td>${v.renter || '—'}</td>
+        <td>${v.pickupAddress || '—'}</td>
+        <td>${actionCell}</td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="8" style="color:#888;">No vehicles listed yet.</td></tr>';
+
+  const historyList = document.getElementById('userHistoryList');
+  const historyItems = mine.map(v => {
+    const booking = bookings.find(b => b.vehicleId === v.id);
+    const statusText = booking && booking.status === 'documents_pending'
+      ? 'Documents pending approval'
+      : booking && booking.status === 'rejected'
+        ? 'Order rejected by owner'
+        : booking && booking.status === 'returned'
+          ? 'Vehicle returned'
+          : booking && booking.status === 'completed'
+            ? 'Completed rental'
+            : booking && booking.status === 'ready'
+              ? 'Ready for pickup'
+              : v.status === 'rented'
+                ? 'Currently rented'
+                : 'Listed for rent';
+    const detailText = booking
+      ? `${booking.days} day(s) • ₹${booking.total} • PAN: ${booking.panNumber || '—'} • DL: ${booking.dlNumber || '—'}`
+      : 'No booking yet';
+    return `
+      <div class="history-item">
+        <div class="history-top">
+          <strong>${v.name}</strong>
+          <span class="tag">${statusText}</span>
+        </div>
+        <div class="history-meta">${detailText}</div>
+      </div>
+    `;
+  });
+  historyList.innerHTML = historyItems.length ? historyItems.join('') : '<div class="history-item"><div class="tiny">No history yet.</div></div>';
+}
+
+/* ---------------- Customer panel rendering ---------------- */
+function renderCustomerPanel(){
+  const grid = document.getElementById('customerGrid');
+  grid.innerHTML = vehicles.map(v => `
+    <div class="vehicle-card">
+      <img class="vehicle-image" src="${v.image || DEFAULT_VEHICLE_IMAGE}" alt="${v.name}">
+      <span class="tag ${v.status==='rented'?'rented':''}">${v.status==='rented'?'Rented out':'Available'}</span>
+      <h3>${v.name}</h3>
+      <div style="font-size:.8rem; color:var(--slate);">${v.type}</div>
+      <div class="price">₹${v.price} <span>/ day</span></div>
+      <div class="tiny">Pickup: ${v.pickupAddress || 'Contact owner'}</div>
+      <button class="btn" ${v.status==='rented'?'disabled style="opacity:.45;cursor:not-allowed;"':''} onclick="openBookModal(${v.id})">
+        ${v.status==='rented' ? 'Unavailable' : 'Select to rent'}
+      </button>
+    </div>
+  `).join('');
+
+  const body = document.getElementById('myBookingsBody');
+  const mine = bookings.filter(b => b.customer === currentUser.email);
+  body.innerHTML = mine.map(b => {
+    const v = vehicles.find(x=>x.id===b.vehicleId);
+    const isPendingDocs = b.status === 'documents_pending';
+    const isReady = b.status === 'ready';
+    const statusLabel = b.status === 'completed' || b.status === 'returned'
+      ? '<span class="status-pill">Returned</span>'
+      : b.status === 'rejected'
+        ? '<span class="status-pill pending">Rejected by owner</span>'
+        : isPendingDocs
+          ? '<span class="status-pill pending">Awaiting owner approval</span>'
+          : isReady
+            ? '<span class="status-pill ready">Ready for pickup</span>'
+            : '<span class="status-pill pending">Pending pickup</span>';
+    const actionCell = b.status === 'completed' || b.status === 'returned'
+      ? '—'
+      : b.status === 'rejected'
+        ? '<span class="tiny">Your booking request was rejected by the owner.</span>'
+        : isPendingDocs
+          ? '<div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;"><span class="tiny">Submit original documents to owner</span><span class="tiny">Owner approval pending</span></div>'
+          : `<div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;"><button class="link-btn" onclick="confirmPickup(${b.vehicleId})">${b.status === 'ready' ? 'Confirm pickup' : 'Confirm pending'}</button><button class="link-btn" onclick="cancelBooking(${b.vehicleId})" style="color:var(--rust);">Cancel booking</button></div>`;
+    return `<tr><td>${v ? v.name : 'Vehicle'}</td><td>${b.days}</td><td>₹${b.total}</td><td>${b.pickupMode === 'delivery' ? 'Delivery' : 'Collect from user'}<br><span class="tiny">${b.pickupNote || 'No note'}</span></td><td>${statusLabel}</td><td>${actionCell}</td></tr>`;
+  }).join('') || '<tr><td colspan="6" style="color:#888;">No bookings yet.</td></tr>';
+
+  const historyList = document.getElementById('customerHistoryList');
+  const historyItems = mine.map(b => {
+    const v = vehicles.find(x=>x.id===b.vehicleId);
+    const statusText = b.status === 'completed' || b.status === 'returned'
+      ? 'Vehicle returned'
+      : b.status === 'rejected'
+        ? 'Rejected by owner'
+        : b.status === 'ready'
+          ? 'Ready for pickup'
+          : b.status === 'documents_pending'
+            ? 'Documents under review'
+            : 'Booking placed';
+    return `
+      <div class="history-item">
+        <div class="history-top">
+          <strong>${v ? v.name : 'Vehicle'}</strong>
+          <span class="tag">${statusText}</span>
+        </div>
+        <div class="history-meta">${b.days} day(s) • ₹${b.total} • PAN: ${b.panNumber || '—'} • DL: ${b.dlNumber || '—'}</div>
+      </div>
+    `;
+  });
+  historyList.innerHTML = historyItems.length ? historyItems.join('') : '<div class="history-item"><div class="tiny">No history yet.</div></div>';
+}
+
+/* ---------------- Booking + payment flow ---------------- */
+function openBookModal(vehicleId){
+  activeBookingVehicleId = vehicleId;
+  const v = vehicles.find(x=>x.id===vehicleId);
+  document.getElementById('bookModalTitle').textContent = 'Book — ' + v.name;
+  document.getElementById('bookOwnerDetails').innerHTML = `Owner: <b>${v.ownerName || v.owner}</b> • Phone: <b>${v.ownerPhone || 'N/A'}</b><br>Pickup address: <b>${v.pickupAddress || 'Contact owner'}</b>`;
+  document.getElementById('bookDays').value = 1;
+  document.getElementById('bookCustomerName').value = '';
+  document.getElementById('bookPanNumber').value = '';
+  document.getElementById('bookDlNumber').value = '';
+  document.getElementById('bookDocNote').value = '';
+  document.getElementById('bookPickupMode').value = 'collect';
+  document.getElementById('bookPickupNote').value = '';
+  updateBreakdown();
+  document.getElementById('bookModal').classList.remove('hidden');
+}
+function updateBreakdown(){
+  const v = vehicles.find(x=>x.id===activeBookingVehicleId);
+  let days = parseInt(document.getElementById('bookDays').value) || 1;
+  if(days<1) days=1;
+  document.getElementById('bdRate').textContent = '₹' + v.price + ' / day';
+  document.getElementById('bdDays').textContent = days;
+  document.getElementById('bdTotal').textContent = '₹' + (v.price*days);
+}
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+function goToPayment(){
+  const v = vehicles.find(x=>x.id===activeBookingVehicleId);
+  const days = parseInt(document.getElementById('bookDays').value) || 1;
+  closeModal('bookModal');
+  document.getElementById('payAmount').textContent = '₹' + (v.price*days);
+  document.getElementById('payModal').classList.remove('hidden');
+}
+
+function isValidPanNumber(panNumber){
+  return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNumber);
+}
+
+function isValidDrivingLicense(dlNumber){
+  const normalized = dlNumber.replace(/[^A-Z0-9]/g, '').toUpperCase();
+  return /^[A-Z]{2}\d{2}\d{4}\d{7}$/.test(normalized);
+}
+
+function confirmPayment(){
+  const v = vehicles.find(x=>x.id===activeBookingVehicleId);
+  const days = parseInt(document.getElementById('bookDays').value) || 1;
+  const total = v.price*days;
+  const method = document.querySelector('input[name="payMethod"]:checked').value;
+  const customerName = document.getElementById('bookCustomerName').value.trim();
+  const panNumber = document.getElementById('bookPanNumber').value.trim().toUpperCase();
+  const dlNumber = document.getElementById('bookDlNumber').value.trim();
+  const docNote = document.getElementById('bookDocNote').value.trim();
+  const pickupMode = document.getElementById('bookPickupMode').value;
+  const pickupNote = document.getElementById('bookPickupNote').value.trim();
+
+  if(!customerName || !panNumber || !dlNumber || !pickupNote){
+    alert('Please enter customer name, PAN card number, driving license number, and pickup address before booking.');
+    return;
+  }
+
+  if(!isValidPanNumber(panNumber)){
+    alert('Please enter a valid PAN number in the format ABCDE1234F (5 letters, 4 digits, 1 letter).');
+    return;
+  }
+
+  if(!isValidDrivingLicense(dlNumber)){
+    alert('Please enter a valid Indian driving licence number in the format DL01-2024-1234567 or DL0120241234567.');
+    return;
+  }
+
+  v.status = 'rented';
+  v.renter = currentUser.email;
+  v.days = days;
+  bookings.push({vehicleId:v.id, customer:currentUser.email, days, total, method, customerName, panNumber, dlNumber, docNote, pickupMode, pickupNote, status:'documents_pending', pickupTime:'', documentStatus:'pending'});
+  persistState();
+
+  closeModal('payModal');
+  document.getElementById('bookingSuccessMsg').textContent =
+    `Booking request for ${v.name} is now waiting for owner review. Please submit your original documents to the owner for approval, and the booking will be confirmed after their review.`;
+  document.getElementById('bookingSuccess').classList.remove('hidden');
+  renderCustomerPanel();
+  renderCompanyPanel();
+}
+function dismissBanner(){ document.getElementById('bookingSuccess').classList.add('hidden'); }
+
+function approveDocuments(vehicleId){
+  const v = vehicles.find(x=>x.id===vehicleId);
+  const bookingIndex = bookings.findIndex(b=>b.vehicleId===vehicleId);
+  if(bookingIndex < 0){ return; }
+
+  if(v){ v.status = 'rented'; }
+  bookings[bookingIndex] = {
+    ...bookings[bookingIndex],
+    status: 'ready',
+    documentStatus: 'approved',
+    pickupTime: 'Documents approved'
+  };
+
+  persistState();
+  renderUserPanel();
+  renderCustomerPanel();
+  renderCompanyPanel();
+}
+
+function rejectBooking(vehicleId){
+  const v = vehicles.find(x=>x.id===vehicleId);
+  const bookingIndex = bookings.findIndex(b=>b.vehicleId===vehicleId);
+  if(bookingIndex < 0){ return; }
+
+  if(v){
+    v.status = 'available';
+    v.renter = null;
+    v.days = 0;
+  }
+
+  bookings[bookingIndex] = {
+    ...bookings[bookingIndex],
+    status: 'rejected',
+    documentStatus: 'rejected',
+    pickupTime: 'Rejected by owner'
+  };
+
+  persistState();
+  renderUserPanel();
+  renderCustomerPanel();
+  renderCompanyPanel();
+}
+
+function markPickupReady(vehicleId){
+  const v = vehicles.find(x=>x.id===vehicleId);
+  const bookingIndex = bookings.findIndex(b=>b.vehicleId===vehicleId && b.customer===v.renter);
+  if(v){ v.status = 'rented'; }
+  if(bookingIndex >= 0){
+    bookings[bookingIndex] = {
+      ...bookings[bookingIndex],
+      status: 'ready',
+      pickupTime: 'Ready for pickup'
+    };
+  }
+  persistState();
+  renderUserPanel();
+  renderCustomerPanel();
+  renderCompanyPanel();
+}
+
+function markVehicleReturned(vehicleId){
+  const v = vehicles.find(x=>x.id===vehicleId);
+  const bookingIndex = bookings.findIndex(b=>b.vehicleId===vehicleId);
+  if(bookingIndex < 0){ return; }
+
+  if(v){
+    v.status = 'available';
+    v.renter = null;
+    v.days = 0;
+  }
+
+  bookings[bookingIndex] = {
+    ...bookings[bookingIndex],
+    status: 'returned',
+    pickupTime: 'Vehicle returned'
+  };
+
+  persistState();
+  renderUserPanel();
+  renderCustomerPanel();
+  renderCompanyPanel();
+}
+
+function confirmPickup(vehicleId){
+  const v = vehicles.find(x=>x.id===vehicleId);
+  const bookingIndex = bookings.findIndex(b=>b.vehicleId===vehicleId);
+  if(bookingIndex < 0){ return; }
+
+  const booking = bookings[bookingIndex];
+  bookings[bookingIndex] = {
+    ...booking,
+    status: 'completed',
+    pickupTime: booking.pickupMode === 'delivery' ? 'Delivered to address' : 'Collected'
+  };
+
+  if(v){
+    v.status = 'available';
+    v.renter = null;
+    v.days = 0;
+  }
+
+  persistState();
+  renderCustomerPanel();
+  renderCompanyPanel();
+  renderUserPanel();
+}
+
+function cancelBooking(vehicleId){
+  const v = vehicles.find(x=>x.id===vehicleId);
+  const bookingIndex = bookings.findIndex(b=>b.vehicleId===vehicleId && b.customer===currentUser.email);
+  if(bookingIndex < 0){ return; }
+
+  bookings.splice(bookingIndex, 1);
+  if(v){
+    v.status = 'available';
+    v.renter = null;
+    v.days = 0;
+  }
+
+  persistState();
+  renderCustomerPanel();
+  renderCompanyPanel();
+  renderUserPanel();
+}
+
+function removeVehicle(vehicleId){
+  const vehicle = vehicles.find(v => v.id === vehicleId);
+  if(!vehicle){ return; }
+
+  const confirmDelete = confirm(`Remove ${vehicle.name} from the listings?`);
+  if(!confirmDelete){ return; }
+
+  vehicles = vehicles.filter(v => v.id !== vehicleId);
+  bookings = bookings.filter(b => b.vehicleId !== vehicleId);
+  persistState();
+  renderCompanyPanel();
+  renderUserPanel();
+  renderCustomerPanel();
+}
+
+function openAccountDetails(email){
+  const account = users[email];
+  if(!account){ return; }
+
+  const rentals = bookings.filter(b => b.customer === email);
+  const detailHtml = `
+    <div class="row"><strong>Email</strong><span>${email}</span></div>
+    <div class="row"><strong>Role</strong><span>${account.role || 'user'}</span></div>
+    <div class="row"><strong>Mobile</strong><span>${account.mobile || '—'}</span></div>
+    <div class="row"><strong>Account type</strong><span>${account.role === 'company' ? 'Admin' : account.role === 'customer' ? 'Customer' : 'User'}</span></div>
+    <div class="row"><strong>Bookings</strong><span>${rentals.length}</span></div>
+    <div class="row"><strong>Last booking</strong><span>${rentals.length ? (rentals[rentals.length - 1].status || 'Booked') : 'No bookings yet'}</span></div>
+  `;
+
+  document.getElementById('accountDetailContent').innerHTML = detailHtml;
+  document.getElementById('accountDetailModal').classList.remove('hidden');
+}
+
+function openRegisteredAccountsModal(role){
+  const title = role === 'customer' ? 'Registered customers' : 'Registered users';
+  const filteredAccounts = Object.entries(users)
+    .filter(([email]) => email !== 'sanju12@gmail.com')
+    .filter(([, account]) => (account.role || 'user') === role)
+    .map(([email, account]) => ({
+      email,
+      mobile: account.mobile || '—',
+      role: account.role || 'user'
+    }));
+
+  const detailHtml = filteredAccounts.length
+    ? filteredAccounts.map(account => `
+        <div class="detail-card" style="margin-top:8px;">
+          <div class="row"><strong>Email</strong><span>${account.email}</span></div>
+          <div class="row"><strong>Role</strong><span>${account.role}</span></div>
+          <div class="row"><strong>Mobile</strong><span>${account.mobile}</span></div>
+        </div>
+      `).join('')
+    : `<div class="tiny">No ${title.toLowerCase()} found.</div>`;
+
+  document.getElementById('accountDetailContent').innerHTML = `<h4 style="margin:0 0 8px;">${title}</h4>${detailHtml}`;
+  document.getElementById('accountDetailModal').classList.remove('hidden');
+}
+
+function renderCompanyPanel(){
+  const companyBookings = bookings.slice().reverse();
+  const accountEntries = Object.entries(users)
+    .filter(([email]) => email !== 'sanju12@gmail.com')
+    .map(([email, account]) => ({
+      email,
+      role: account.role || 'user',
+      mobile: account.mobile || '—',
+      status: account.role === 'company' ? 'Admin' : account.role === 'customer' ? 'Customer' : 'User'
+    }));
+
+  document.getElementById('statCompanyVehicles').textContent = vehicles.length;
+  document.getElementById('statCompanyRented').textContent = vehicles.filter(v=>v.status==='rented').length;
+  document.getElementById('statCompanyPickup').textContent = bookings.filter(b=>b.status!=='completed').length;
+  document.getElementById('statCompanyVerified').textContent = bookings.filter(b=>b.panNumber && b.dlNumber).length;
+  document.getElementById('statCompanyUsers').textContent = accountEntries.filter(a => a.role === 'user').length;
+  document.getElementById('statCompanyCustomers').textContent = accountEntries.filter(a => a.role === 'customer').length;
+
+  const bookingBody = document.getElementById('companyBookingsBody');
+  bookingBody.innerHTML = companyBookings.map(b => {
+    const v = vehicles.find(x=>x.id===b.vehicleId);
+    const badge = b.status === 'completed' ? '<span class="status-pill">Completed</span>' : b.status === 'ready' ? '<span class="status-pill ready">Ready</span>' : b.status === 'documents_pending' ? '<span class="status-pill pending">Docs pending</span>' : '<span class="status-pill pending">Pending</span>';
+    const owner = v ? (v.ownerName || v.owner || '—') : '—';
+    const action = b.status === 'completed'
+      ? 'Completed'
+      : b.status === 'documents_pending'
+        ? `<div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;"><button class="link-btn" onclick="approveDocuments(${b.vehicleId})">Approve docs</button><button class="link-btn" onclick="rejectBooking(${b.vehicleId})" style="color:var(--rust);">Reject order</button></div>`
+        : `<button class="link-btn" onclick="confirmPickup(${b.vehicleId})">${b.status === 'ready' ? 'Confirm pickup' : 'Confirm pending'}</button>`;
+    return `<tr><td>${b.customerName || b.customer}<br><span class="tiny">Email: ${b.customer}<br>PAN: ${b.panNumber || '—'}<br>DL: ${b.dlNumber || '—'}</span></td><td>${owner}<br><span class="tiny">Email: ${v ? v.owner : '—'}</span></td><td>${v ? v.name : 'Vehicle'}</td><td>${b.days}</td><td>₹${b.total}</td><td>${b.pickupMode === 'delivery' ? 'Delivery' : 'Collect from user'}<br><span class="tiny">${b.pickupNote || 'No note'}</span></td><td>${badge}<br>${action}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:#888;">No bookings yet.</td></tr>';
+
+  const vehicleBody = document.getElementById('companyVehiclesBody');
+  vehicleBody.innerHTML = vehicles.map(v => `
+    <tr>
+      <td>
+        <div class="admin-vehicle-row">
+          <img src="${v.image || DEFAULT_VEHICLE_IMAGE}" alt="${v.name}">
+          <div>
+            <strong>${v.name}</strong><br>
+            <span class="tiny">${v.ownerName || v.owner}</span>
+          </div>
+        </div>
+      </td>
+      <td>${v.type}</td>
+      <td>₹${v.price}</td>
+      <td>${v.ownerName || v.owner}</td>
+      <td>${v.pickupAddress || '—'}</td>
+      <td>${v.status === 'rented' ? '<span class="status-pill pending">Rented</span>' : '<span class="status-pill ready">Available</span>'}</td>
+      <td><button class="link-btn" onclick="removeVehicle(${v.id})" style="color:var(--rust);">Remove</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="color:#888;">No vehicles available.</td></tr>';
+
+  const accountsBody = document.getElementById('companyAccountsBody');
+  accountsBody.innerHTML = accountEntries.map(account => `
+    <tr class="account-row">
+      <td>${account.email}</td>
+      <td>${account.role}</td>
+      <td>${account.mobile}</td>
+      <td>${account.status}</td>
+      <td><button class="link-btn" onclick="openAccountDetails('${account.email}')">Details</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="color:#888;">No accounts found.</td></tr>';
+}
+</script>
+</body>
+</html>
+

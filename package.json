@@ -1,0 +1,9 @@
+{
+  "name": "rideeasy-backend",
+  "version": "1.0.0",
+  "description": "Simple backend for the RideEasy rental demo",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

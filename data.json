@@ -1,0 +1,64 @@
+{
+  "users": {},
+  "vehicles": [
+    {
+      "id": 1,
+      "owner": "demo-owner@rideeasy.com",
+      "name": "Honda Activa",
+      "type": "Bike",
+      "price": 400,
+      "status": "available",
+      "renter": null,
+      "days": 0,
+      "ownerName": "Asha Kumar",
+      "ownerPhone": "9876543210",
+      "pickupAddress": "Near MG Road",
+      "image": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=900&q=80"
+    },
+    {
+      "id": 2,
+      "owner": "demo-owner@rideeasy.com",
+      "name": "Royal Enfield Classic",
+      "type": "Bike",
+      "price": 900,
+      "status": "available",
+      "renter": null,
+      "days": 0,
+      "ownerName": "Asha Kumar",
+      "ownerPhone": "9876543210",
+      "pickupAddress": "Near MG Road",
+      "image": "https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=900&q=80"
+    },
+    {
+      "id": 3,
+      "owner": "demo-owner@rideeasy.com",
+      "name": "Maruti Swift",
+      "type": "Car",
+      "price": 1800,
+      "status": "available",
+      "renter": null,
+      "days": 0,
+      "ownerName": "Asha Kumar",
+      "ownerPhone": "9876543210",
+      "pickupAddress": "Near MG Road",
+      "image": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80"
+    },
+    {
+      "id": 4,
+      "owner": "demo-owner@rideeasy.com",
+      "name": "TVS iQube",
+      "type": "Scooter",
+      "price": 500,
+      "status": "available",
+      "renter": null,
+      "days": 0,
+      "ownerName": "Asha Kumar",
+      "ownerPhone": "9876543210",
+      "pickupAddress": "Near MG Road",
+      "image": "https://images.unsplash.com/photo-1555652736-e92021d28bba?auto=format&fit=crop&w=900&q=80"
+    }
+  ],
+  "bookings": [],
+  "currentUser": null,
+  "nextVehicleId": 5
+}
